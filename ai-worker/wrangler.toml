@@ -1,0 +1,6 @@
+name = "sorting-hat-ai"
+main = "worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+AI_MODEL = "meta-llama/llama-3.1-8b-instruct:free"

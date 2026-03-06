@@ -20,6 +20,8 @@ const loadingLine = document.getElementById("loading-line");
 const houseInsightTitle = document.getElementById("house-insight-title");
 const houseQualities = document.getElementById("house-qualities");
 const houseCharacters = document.getElementById("house-characters");
+const AI_SORT_API_URL = window.SORTING_HAT_AI_ENDPOINT || "";
+const AI_REQUEST_TIMEOUT_MS = 3200;
 
 let latestResult = null;
 let isSorting = false;
@@ -235,6 +237,72 @@ function getDominantTraits(normalizedTraits) {
 
 function titleCase(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function normalizeHouseId(value) {
+  if (!value) return null;
+  const normalized = value.toString().trim().toLowerCase();
+  if (normalized.includes("gryff")) return "gryffindor";
+  if (normalized.includes("slyth")) return "slytherin";
+  if (normalized.includes("raven")) return "ravenclaw";
+  if (normalized.includes("huffle")) return "hufflepuff";
+  return null;
+}
+
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function sanitizeTraitPercents(traits) {
+  if (!traits || typeof traits !== "object") return null;
+  const raw = {
+    bravery: Number(traits.bravery) || 0,
+    ambition: Number(traits.ambition) || 0,
+    intellect: Number(traits.intellect) || 0,
+    loyalty: Number(traits.loyalty) || 0
+  };
+  const total = Object.values(raw).reduce((sum, n) => sum + n, 0);
+  if (!total) return null;
+  const normalized = Object.fromEntries(
+    Object.entries(raw).map(([key, value]) => [key, Math.round((value / total) * 100)])
+  );
+  return { raw, normalized };
+}
+
+async function requestAiSorting(studentName, answers, traitsText) {
+  if (!AI_SORT_API_URL) return null;
+  try {
+    const response = await fetchWithTimeout(
+      AI_SORT_API_URL,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentName, answers, traitsText })
+      },
+      AI_REQUEST_TIMEOUT_MS
+    );
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const houseId = normalizeHouseId(data.house);
+    if (!houseId) return null;
+
+    return {
+      houseId,
+      confidence: Number(data.confidence) || null,
+      explanation: typeof data.explanation === "string" ? data.explanation.trim() : "",
+      traits: sanitizeTraitPercents(data.traits)
+    };
+  } catch {
+    return null;
+  }
 }
 
 function buildAnalysisLine(studentName, personality, confidence) {
@@ -505,7 +573,7 @@ async function shareHouseResult() {
   window.prompt("Copy your result:", text);
 }
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (isSorting) return;
 
@@ -526,17 +594,23 @@ form.addEventListener("submit", (event) => {
   const textPersonality = analyzePersonality(traitsText);
   const quizTraits = traitsFromQuizAnswers(answers);
   const personality = mergeTraits(textPersonality.raw, quizTraits);
-  const result = calculateHouse(answers, textPersonality);
-  const house = houseData[result.winnerId];
-  const analysis = buildAnalysisLine(studentName, personality, result.confidence);
+  const localResult = calculateHouse(answers, textPersonality);
+  const aiDecision = await requestAiSorting(studentName, answers, traitsText);
+  const winnerId = aiDecision?.houseId || localResult.winnerId;
+  const house = houseData[winnerId];
+  const confidence = aiDecision?.confidence || localResult.confidence;
+  const displayPersonality = aiDecision?.traits || personality;
+  const analysis =
+    aiDecision?.explanation ||
+    buildAnalysisLine(studentName, displayPersonality, confidence);
 
   latestResult = {
     studentName,
     house,
-    confidence: result.confidence,
+    confidence,
     analysis,
-    personality,
-    scores: result.totalScores
+    personality: displayPersonality,
+    scores: localResult.totalScores
   };
 
   hatStage.classList.add("sorting");
@@ -558,15 +632,15 @@ form.addEventListener("submit", (event) => {
     houseLine.textContent = `${studentName}, ${house.line}`;
     analysisLine.textContent = analysis;
 
-    renderTraitBars(personality);
-    renderHouseScores(result.totalScores);
-    renderHouseProfile(result.winnerId);
+    renderTraitBars(displayPersonality);
+    renderHouseScores(localResult.totalScores);
+    renderHouseProfile(winnerId);
 
     stopLoadingReferences(false);
     loadingPanel.classList.add("hidden");
     quizCard.classList.add("hidden");
     resultCard.classList.remove("hidden");
-    activateHouseScene(result.winnerId);
+    activateHouseScene(winnerId);
 
     if (musicUserEnabled) {
       startAmbience();
