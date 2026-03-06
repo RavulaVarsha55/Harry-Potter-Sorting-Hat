@@ -3,4 +3,4 @@ main = "worker.js"
 compatibility_date = "2024-12-01"
 
 [vars]
-AI_MODEL = "openai/gpt-oss-20b:free"
+AI_MODEL = "google/gemma-3-4b-it:free"
