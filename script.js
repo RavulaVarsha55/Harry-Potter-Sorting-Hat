@@ -14,12 +14,15 @@ const shareCanvas = document.getElementById("share-canvas");
 const submitBtn = document.getElementById("submit-btn");
 const musicToggleBtn = document.getElementById("music-toggle");
 const bgMusic = document.getElementById("bg-music");
+const loadingPanel = document.getElementById("loading-panel");
+const loadingLine = document.getElementById("loading-line");
 
 let latestResult = null;
 let isSorting = false;
 let audioContext = null;
 let resultSparkleInterval = null;
 let musicStarted = false;
+let loadingLineInterval = null;
 
 const houseData = {
   gryffindor: {
@@ -67,6 +70,13 @@ const sortingNarration = [
   "It studies your choices and weighs every hidden motive...",
   "It listens to your personality, your courage, your ambition...",
   "A decision flashes like wandlight. The hat has chosen."
+];
+
+const loadingReferences = [
+  "The portraits lean closer. The castle is listening.",
+  "An owl swoops by with a note marked: 'House decision pending.'",
+  "A phoenix-feather flickers and the Great Hall falls silent.",
+  "The hat mutters about courage, wit, loyalty, and ambition..."
 ];
 
 function createEmptyHouseScores() {
@@ -331,6 +341,29 @@ function stopResultSparkles() {
   }
 }
 
+function startLoadingReferences() {
+  if (!loadingLine) return;
+  let idx = 0;
+  loadingLine.textContent = loadingReferences[idx];
+  if (loadingLineInterval) {
+    window.clearInterval(loadingLineInterval);
+  }
+  loadingLineInterval = window.setInterval(() => {
+    idx = (idx + 1) % loadingReferences.length;
+    loadingLine.textContent = loadingReferences[idx];
+  }, 700);
+}
+
+function stopLoadingReferences() {
+  if (loadingLineInterval) {
+    window.clearInterval(loadingLineInterval);
+    loadingLineInterval = null;
+  }
+  if (loadingLine) {
+    loadingLine.textContent = "The Sorting Hat whispers, \"Hmm... difficult. Very difficult...\"";
+  }
+}
+
 function updateNarration(index) {
   if (index < sortingNarration.length) {
     narration.textContent = sortingNarration[index];
@@ -436,6 +469,9 @@ form.addEventListener("submit", (event) => {
   isSorting = true;
   submitBtn.disabled = true;
   shareBtn.disabled = true;
+  form.classList.add("hidden");
+  loadingPanel.classList.remove("hidden");
+  startLoadingReferences();
 
   const personality = analyzePersonality(traitsText);
   const result = calculateHouse(answers, personality);
@@ -464,6 +500,8 @@ form.addEventListener("submit", (event) => {
     renderTraitBars(personality);
     renderHouseScores(result.totalScores);
 
+    stopLoadingReferences();
+    loadingPanel.classList.add("hidden");
     quizCard.classList.add("hidden");
     resultCard.classList.remove("hidden");
     stopAmbience();
@@ -481,9 +519,12 @@ form.addEventListener("submit", (event) => {
 retryBtn.addEventListener("click", () => {
   form.reset();
   stopResultSparkles();
+  stopLoadingReferences();
   clearHouseScene();
   resultCard.classList.add("hidden");
   quizCard.classList.remove("hidden");
+  loadingPanel.classList.add("hidden");
+  form.classList.remove("hidden");
   resumeQuizMusic();
   narration.textContent = "The hat yawns awake and waits for the next witch or wizard...";
   latestResult = null;

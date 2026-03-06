@@ -80,6 +80,13 @@
 
         <button id="submit-btn" type="submit">Place The Hat On My Head</button>
       </form>
+      <div id="loading-panel" class="loading-panel hidden" aria-live="polite">
+        <p class="loading-title">Consulting The Marauder's Map...</p>
+        <p id="loading-line" class="loading-line">The Sorting Hat whispers, "Hmm... difficult. Very difficult..."</p>
+        <button type="button" class="loading-btn" disabled>
+          Brewing Your House Destiny<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+        </button>
+      </div>
     </section>
 
     <section class="result-card hidden" id="result-card" aria-live="polite">
