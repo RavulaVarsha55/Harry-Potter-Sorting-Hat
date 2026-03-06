@@ -20,6 +20,7 @@ const loadingLine = document.getElementById("loading-line");
 const houseInsightTitle = document.getElementById("house-insight-title");
 const houseQualities = document.getElementById("house-qualities");
 const houseCharacters = document.getElementById("house-characters");
+const funFactText = document.getElementById("fun-fact-text");
 const AI_SORT_API_URL = window.SORTING_HAT_AI_ENDPOINT || "";
 const AI_REQUEST_TIMEOUT_MS = 3200;
 
@@ -112,6 +113,19 @@ const houseProfiles = {
     symbol: "🦡"
   }
 };
+
+const wizardingFacts = [
+  "The Hogwarts motto is 'Draco Dormiens Nunquam Titillandus' which means 'Never tickle a sleeping dragon.'",
+  "The Knight Bus appears only for witches and wizards who are truly stranded and in need of transport.",
+  "Sir Nicholas's full name is Sir Nicholas de Mimsy-Porpington, known to students as Nearly Headless Nick.",
+  "The Room of Requirement only appears when someone has a real, specific need for it.",
+  "A wand generally chooses the wizard, which is why wand compatibility matters so much in duels.",
+  "Hedwig was named after a historical saint that appears in medieval writings J.K. Rowling read.",
+  "Ravenclaw's lost diadem was said to enhance wisdom for the wearer.",
+  "Hufflepuff House values hard work, patience, loyalty, and fair play above all.",
+  "Slytherin House was founded by Salazar Slytherin and is tied to ambition and resourcefulness.",
+  "Gryffindor's sword only presents itself to a true Gryffindor in moments of need."
+];
 
 function createEmptyHouseScores() {
   return {
@@ -298,11 +312,22 @@ async function requestAiSorting(studentName, answers, traitsText) {
       houseId,
       confidence: Number(data.confidence) || null,
       explanation: typeof data.explanation === "string" ? data.explanation.trim() : "",
-      traits: sanitizeTraitPercents(data.traits)
+      traits: sanitizeTraitPercents(data.traits),
+      funFact: typeof data.funFact === "string" ? data.funFact.trim() : ""
     };
   } catch {
     return null;
   }
+}
+
+function pickFunFact() {
+  const index = Math.floor(Math.random() * wizardingFacts.length);
+  return wizardingFacts[index];
+}
+
+function renderFunFact(text) {
+  if (!funFactText) return;
+  funFactText.textContent = text || pickFunFact();
 }
 
 function buildAnalysisLine(studentName, personality, confidence) {
@@ -600,6 +625,7 @@ form.addEventListener("submit", async (event) => {
   const house = houseData[winnerId];
   const confidence = aiDecision?.confidence || localResult.confidence;
   const displayPersonality = aiDecision?.traits || personality;
+  const selectedFunFact = aiDecision?.funFact || pickFunFact();
   const analysis =
     aiDecision?.explanation ||
     buildAnalysisLine(studentName, displayPersonality, confidence);
@@ -635,6 +661,7 @@ form.addEventListener("submit", async (event) => {
     renderTraitBars(displayPersonality);
     renderHouseScores(localResult.totalScores);
     renderHouseProfile(winnerId);
+    renderFunFact(selectedFunFact);
 
     stopLoadingReferences(false);
     loadingPanel.classList.add("hidden");

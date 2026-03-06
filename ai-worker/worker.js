@@ -54,7 +54,8 @@ async function callOpenRouter(apiKey, model, payload) {
     "house (gryffindor|slytherin|ravenclaw|hufflepuff),",
     "confidence (0-100 number),",
     "explanation (one sentence),",
-    "traits ({bravery, ambition, intellect, loyalty} numeric percentages)."
+    "traits ({bravery, ambition, intellect, loyalty} numeric percentages),",
+    "funFact (one short interesting Harry Potter world fact, under 160 chars)."
   ].join(" ");
 
   const userPrompt = {
@@ -100,7 +101,8 @@ async function callOpenRouter(apiKey, model, payload) {
     house,
     confidence: Math.max(0, Math.min(100, Number(parsed.confidence) || 75)),
     explanation: String(parsed.explanation || "The hat sees your magical potential clearly.").slice(0, 260),
-    traits: cleanTraits(parsed.traits) || { bravery: 25, ambition: 25, intellect: 25, loyalty: 25 }
+    traits: cleanTraits(parsed.traits) || { bravery: 25, ambition: 25, intellect: 25, loyalty: 25 },
+    funFact: String(parsed.funFact || "").slice(0, 180)
   };
 }
 

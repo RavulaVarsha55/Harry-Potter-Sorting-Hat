@@ -675,6 +675,27 @@ body.showing-result .button-row button {
   margin: 0.55rem 0 0;
 }
 
+.fun-fact-card {
+  margin: 0.9rem auto 0;
+  width: min(760px, 100%);
+  padding: 0.78rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.fun-fact-card h3 {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  letter-spacing: 0.04em;
+  font-size: 1rem;
+}
+
+.fun-fact-card p {
+  margin: 0.4rem 0 0;
+  font-size: 1.02rem;
+}
+
 @media (max-width: 720px) {
   .app-shell {
     width: 95%;
