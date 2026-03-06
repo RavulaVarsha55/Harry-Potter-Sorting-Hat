@@ -461,6 +461,7 @@ body.showing-result .app-shell {
   max-width: none;
   margin: 0;
   min-height: 100vh;
+  display: block;
 }
 
 body.showing-result .hero-card,
@@ -493,6 +494,8 @@ body.house-hufflepuff {
 }
 
 body.showing-result .result-card {
+  width: 100%;
+  max-width: none;
   min-height: 100vh;
   margin: 0;
   border-radius: 0;
@@ -521,6 +524,7 @@ body.showing-result .result-card::before {
 
 .result-content {
   width: min(760px, 92%);
+  margin: 0 auto;
   position: relative;
   z-index: 2;
   padding: 1.35rem 1.2rem 1.1rem;

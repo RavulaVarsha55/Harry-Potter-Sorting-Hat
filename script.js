@@ -14,40 +14,35 @@ const shareCanvas = document.getElementById("share-canvas");
 const submitBtn = document.getElementById("submit-btn");
 const musicToggleBtn = document.getElementById("music-toggle");
 const bgMusic = document.getElementById("bg-music");
+const drumrollSfx = document.getElementById("drumroll-sfx");
 const loadingPanel = document.getElementById("loading-panel");
 const loadingLine = document.getElementById("loading-line");
 
 let latestResult = null;
 let isSorting = false;
-let audioContext = null;
-let resultSparkleInterval = null;
-let musicStarted = false;
 let loadingLineInterval = null;
+let musicUserEnabled = true;
 
 const houseData = {
   gryffindor: {
     label: "Gryffindor",
     color: "#9d1b2e",
-    line: "Your spark runs toward daring action, fierce heart, and bright courage under pressure.",
-    focus: "bravery"
+    line: "Your spark runs toward daring action, fierce heart, and bright courage under pressure."
   },
   slytherin: {
     label: "Slytherin",
     color: "#146242",
-    line: "Your magic is strategic, ambitious, and quietly unstoppable when goals are on the line.",
-    focus: "ambition"
+    line: "Your magic is strategic, ambitious, and quietly unstoppable when goals are on the line."
   },
   ravenclaw: {
     label: "Ravenclaw",
     color: "#1e407f",
-    line: "Your mind leads with wit, curiosity, and inventive thinking that turns puzzles into pathways.",
-    focus: "intellect"
+    line: "Your mind leads with wit, curiosity, and inventive thinking that turns puzzles into pathways."
   },
   hufflepuff: {
     label: "Hufflepuff",
     color: "#ae862c",
-    line: "Your strength is steady: loyal friendships, fair choices, and patient, grounded care.",
-    focus: "loyalty"
+    line: "Your strength is steady: loyal friendships, fair choices, and patient, grounded care."
   }
 };
 
@@ -63,6 +58,12 @@ const traitHouseMap = {
   ambition: "slytherin",
   intellect: "ravenclaw",
   loyalty: "hufflepuff"
+};
+const houseTraitMap = {
+  gryffindor: "bravery",
+  slytherin: "ambition",
+  ravenclaw: "intellect",
+  hufflepuff: "loyalty"
 };
 
 const sortingNarration = [
@@ -131,6 +132,36 @@ function analyzePersonality(text) {
   return { raw: traits, normalized: normalizedTraits };
 }
 
+function traitsFromQuizAnswers(answers) {
+  const traits = {
+    bravery: 0,
+    ambition: 0,
+    intellect: 0,
+    loyalty: 0
+  };
+  answers.forEach((house) => {
+    const trait = houseTraitMap[house];
+    if (trait) {
+      traits[trait] += 2;
+    }
+  });
+  return traits;
+}
+
+function mergeTraits(textTraits, quizTraits) {
+  const merged = {
+    bravery: textTraits.bravery + quizTraits.bravery,
+    ambition: textTraits.ambition + quizTraits.ambition,
+    intellect: textTraits.intellect + quizTraits.intellect,
+    loyalty: textTraits.loyalty + quizTraits.loyalty
+  };
+  const total = Object.values(merged).reduce((sum, n) => sum + n, 0) || 1;
+  const normalized = Object.fromEntries(
+    Object.entries(merged).map(([trait, value]) => [trait, Math.round((value / total) * 100)])
+  );
+  return { raw: merged, normalized };
+}
+
 function calculateHouse(quizAnswers, personality) {
   const quizScores = createEmptyHouseScores();
   const aiScores = createEmptyHouseScores();
@@ -160,8 +191,6 @@ function calculateHouse(quizAnswers, personality) {
   return {
     winnerId,
     totalScores,
-    quizScores,
-    aiScores,
     confidence
   };
 }
@@ -177,7 +206,7 @@ function titleCase(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function buildAnalysisLine(studentName, house, personality, confidence) {
+function buildAnalysisLine(studentName, personality, confidence) {
   const topTraits = getDominantTraits(personality.normalized).map(titleCase);
   return `${studentName}, the hat detects strong ${topTraits.join(" + ")} patterns in your writing. House affinity confidence: ${confidence}%.`;
 }
@@ -221,89 +250,35 @@ function renderHouseScores(scores) {
     });
 }
 
-function getAudioContext() {
-  if (audioContext) return audioContext;
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return null;
-  audioContext = new AudioContextClass();
-  return audioContext;
-}
-
-function playSoftTone(ctx, frequency, start, duration, type, gainLevel) {
-  const oscillator = ctx.createOscillator();
-  const gain = ctx.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, start);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(gainLevel, start + 0.08);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(gain);
-  gain.connect(ctx.destination);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.02);
-}
-
-function playSortingChime() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  if (ctx.state === "suspended") {
-    ctx.resume();
-  }
-  const start = ctx.currentTime;
-  const notes = [392, 523.25, 659.25, 783.99, 659.25, 523.25];
-
-  notes.forEach((frequency, i) => {
-    playSoftTone(ctx, frequency, start + i * 0.12, 0.34, "triangle", 0.085);
-  });
-}
-
-function playSpellSpark() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  if (ctx.state === "suspended") {
-    ctx.resume();
-  }
-  const now = ctx.currentTime;
-  [1174.66, 1567.98].forEach((freq, idx) => {
-    playSoftTone(ctx, freq, now + idx * 0.06, 0.28, "sine", 0.05);
-  });
-}
-
-function playResultSparkle() {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-  if (ctx.state === "suspended") {
-    ctx.resume();
-  }
-  const now = ctx.currentTime;
-  const highNotes = [987.77, 1174.66, 1318.51, 1567.98];
-  const chosen = highNotes[Math.floor(Math.random() * highNotes.length)];
-  playSoftTone(ctx, chosen, now, 0.26, "sine", 0.03);
-  playSoftTone(ctx, chosen * 1.5, now + 0.04, 0.2, "triangle", 0.015);
-}
-
-function scheduleAmbience() {
+function startAmbience() {
   if (!bgMusic) return;
   bgMusic.volume = 0.34;
   const playPromise = bgMusic.play();
   if (playPromise && typeof playPromise.catch === "function") {
     playPromise.catch(() => {});
   }
-}
-
-function startAmbience() {
-  if (!bgMusic) return;
-  if (!bgMusic.paused) return;
-  scheduleAmbience();
   musicToggleBtn.textContent = "Music: Off";
-  musicStarted = true;
 }
 
 function stopAmbience() {
-  if (bgMusic) {
-    bgMusic.pause();
-  }
+  if (!bgMusic) return;
+  bgMusic.pause();
   musicToggleBtn.textContent = "Music: On";
+}
+
+function playDrumroll() {
+  if (!drumrollSfx) return;
+  drumrollSfx.currentTime = 0;
+  const playPromise = drumrollSfx.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(() => {});
+  }
+}
+
+function stopDrumroll() {
+  if (!drumrollSfx) return;
+  drumrollSfx.pause();
+  drumrollSfx.currentTime = 0;
 }
 
 function activateHouseScene(houseId) {
@@ -316,29 +291,6 @@ function activateHouseScene(houseId) {
 function clearHouseScene() {
   const body = document.body;
   body.classList.remove("showing-result", "house-gryffindor", "house-slytherin", "house-ravenclaw", "house-hufflepuff");
-}
-
-function resumeQuizMusic() {
-  if (!musicStarted) return;
-  if (!bgMusic) return;
-  if (!bgMusic.paused) return;
-  startAmbience();
-}
-
-function startResultSparkles() {
-  stopResultSparkles();
-  resultSparkleInterval = window.setInterval(() => {
-    if (Math.random() > 0.42) {
-      playResultSparkle();
-    }
-  }, 900);
-}
-
-function stopResultSparkles() {
-  if (resultSparkleInterval) {
-    window.clearInterval(resultSparkleInterval);
-    resultSparkleInterval = null;
-  }
 }
 
 function startLoadingReferences() {
@@ -473,10 +425,12 @@ form.addEventListener("submit", (event) => {
   loadingPanel.classList.remove("hidden");
   startLoadingReferences();
 
-  const personality = analyzePersonality(traitsText);
-  const result = calculateHouse(answers, personality);
+  const textPersonality = analyzePersonality(traitsText);
+  const quizTraits = traitsFromQuizAnswers(answers);
+  const personality = mergeTraits(textPersonality.raw, quizTraits);
+  const result = calculateHouse(answers, textPersonality);
   const house = houseData[result.winnerId];
-  const analysis = buildAnalysisLine(studentName, house, personality, result.confidence);
+  const analysis = buildAnalysisLine(studentName, personality, result.confidence);
 
   latestResult = {
     studentName,
@@ -489,9 +443,12 @@ form.addEventListener("submit", (event) => {
 
   hatStage.classList.add("sorting");
   startSortingNarration();
-  playSortingChime();
+  stopAmbience();
+  playDrumroll();
 
   window.setTimeout(() => {
+    stopDrumroll();
+
     houseName.textContent = `${house.label.toUpperCase()}!`;
     houseName.style.color = house.color;
     houseLine.textContent = `${studentName}, ${house.line}`;
@@ -504,10 +461,12 @@ form.addEventListener("submit", (event) => {
     loadingPanel.classList.add("hidden");
     quizCard.classList.add("hidden");
     resultCard.classList.remove("hidden");
-    stopAmbience();
     activateHouseScene(result.winnerId);
-    startResultSparkles();
-    playResultSparkle();
+
+    if (musicUserEnabled) {
+      startAmbience();
+    }
+
     shareBtn.disabled = false;
     submitBtn.disabled = false;
     hatStage.classList.remove("sorting");
@@ -518,14 +477,16 @@ form.addEventListener("submit", (event) => {
 
 retryBtn.addEventListener("click", () => {
   form.reset();
-  stopResultSparkles();
+  stopDrumroll();
   stopLoadingReferences();
   clearHouseScene();
   resultCard.classList.add("hidden");
   quizCard.classList.remove("hidden");
   loadingPanel.classList.add("hidden");
   form.classList.remove("hidden");
-  resumeQuizMusic();
+  if (musicUserEnabled) {
+    startAmbience();
+  }
   narration.textContent = "The hat yawns awake and waits for the next witch or wizard...";
   latestResult = null;
 });
@@ -534,20 +495,23 @@ shareBtn.addEventListener("click", downloadShareCard);
 
 musicToggleBtn.addEventListener("click", () => {
   if (bgMusic && !bgMusic.paused) {
+    musicUserEnabled = false;
     stopAmbience();
   } else {
+    musicUserEnabled = true;
     startAmbience();
   }
 });
 
 window.addEventListener("load", () => {
+  musicUserEnabled = true;
   startAmbience();
 });
 
 window.addEventListener(
   "pointerdown",
   () => {
-    if (bgMusic && bgMusic.paused) {
+    if (musicUserEnabled && bgMusic && bgMusic.paused && !isSorting) {
       startAmbience();
     }
   },
