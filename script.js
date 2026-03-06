@@ -13,13 +13,11 @@ const retryBtn = document.getElementById("retry-btn");
 const shareCanvas = document.getElementById("share-canvas");
 const submitBtn = document.getElementById("submit-btn");
 const musicToggleBtn = document.getElementById("music-toggle");
-const soundToggleBtn = document.getElementById("sound-toggle");
 const bgMusic = document.getElementById("bg-music");
 
 let latestResult = null;
 let isSorting = false;
 let audioContext = null;
-let sfxEnabled = true;
 let resultSparkleInterval = null;
 let musicStarted = false;
 
@@ -236,7 +234,6 @@ function playSoftTone(ctx, frequency, start, duration, type, gainLevel) {
 }
 
 function playSortingChime() {
-  if (!sfxEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
   if (ctx.state === "suspended") {
@@ -251,7 +248,6 @@ function playSortingChime() {
 }
 
 function playSpellSpark() {
-  if (!sfxEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
   if (ctx.state === "suspended") {
@@ -264,7 +260,6 @@ function playSpellSpark() {
 }
 
 function playResultSparkle() {
-  if (!sfxEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
   if (ctx.state === "suspended") {
@@ -290,17 +285,15 @@ function startAmbience() {
   if (!bgMusic) return;
   if (!bgMusic.paused) return;
   scheduleAmbience();
-  musicToggleBtn.textContent = "Stop Magical Music";
+  musicToggleBtn.textContent = "Music: Off";
   musicStarted = true;
-  playSpellSpark();
 }
 
 function stopAmbience() {
   if (bgMusic) {
     bgMusic.pause();
   }
-  musicToggleBtn.textContent = "Start Magical Music";
-  playSpellSpark();
+  musicToggleBtn.textContent = "Music: On";
 }
 
 function activateHouseScene(houseId) {
@@ -506,18 +499,14 @@ musicToggleBtn.addEventListener("click", () => {
   }
 });
 
-soundToggleBtn.addEventListener("click", () => {
-  sfxEnabled = !sfxEnabled;
-  soundToggleBtn.textContent = sfxEnabled ? "Sound Effects: On" : "Sound Effects: Off";
-  if (sfxEnabled) {
-    playSpellSpark();
-  }
+window.addEventListener("load", () => {
+  startAmbience();
 });
 
-form.addEventListener(
+window.addEventListener(
   "pointerdown",
   () => {
-    if (!musicStarted) {
+    if (bgMusic && bgMusic.paused) {
       startAmbience();
     }
   },
