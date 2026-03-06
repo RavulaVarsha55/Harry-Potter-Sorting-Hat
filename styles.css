@@ -1,16 +1,16 @@
 :root {
-  --night-1: #090711;
-  --night-2: #1d1330;
-  --night-3: #2e1c4c;
-  --gold: #e3c884;
-  --ink: #f7ecd3;
-  --mist: #d4c8e9;
-  --card-bg: rgba(17, 12, 31, 0.76);
-  --card-edge: rgba(227, 200, 132, 0.46);
-  --gryffindor: #9d1b2e;
-  --slytherin: #146242;
-  --ravenclaw: #1e407f;
-  --hufflepuff: #ae862c;
+  --night-1: #f2e5c8;
+  --night-2: #e4d2aa;
+  --night-3: #d8c093;
+  --gold: #8a5f20;
+  --ink: #2e1f0f;
+  --mist: #5f4c32;
+  --card-bg: rgba(249, 239, 216, 0.92);
+  --card-edge: rgba(138, 95, 32, 0.44);
+  --gryffindor: #7f1734;
+  --slytherin: #1e5c3c;
+  --ravenclaw: #1c3f7c;
+  --hufflepuff: #d2b020;
   --house-solid: #1d1330;
   --house-deep: #130d22;
   --house-highlight: #e3c884;
@@ -26,12 +26,13 @@ body {
   display: flex;
   justify-content: center;
   color: var(--ink);
-  font-family: "Lora", serif;
+  font-family: "Cormorant Garamond", serif;
   line-height: 1.5;
   background:
-    radial-gradient(circle at 10% 12%, rgba(227, 200, 132, 0.24), transparent 35%),
-    radial-gradient(circle at 86% 8%, rgba(212, 200, 233, 0.2), transparent 38%),
-    radial-gradient(circle at 52% 95%, rgba(150, 87, 214, 0.18), transparent 40%),
+    radial-gradient(circle at 14% 12%, rgba(138, 95, 32, 0.16), transparent 32%),
+    radial-gradient(circle at 85% 10%, rgba(255, 248, 225, 0.35), transparent 35%),
+    radial-gradient(circle at 50% 92%, rgba(138, 95, 32, 0.1), transparent 40%),
+    repeating-linear-gradient(12deg, rgba(88, 60, 27, 0.02) 0 2px, rgba(255, 255, 255, 0.01) 2px 4px),
     linear-gradient(165deg, var(--night-1), var(--night-2) 45%, var(--night-3));
 }
 
@@ -51,9 +52,9 @@ body {
   border-radius: 20px;
   padding: 1.2rem 1.35rem;
   background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.04), transparent 28%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.2), transparent 28%),
     var(--card-bg);
-  box-shadow: 0 16px 32px rgba(4, 3, 9, 0.46);
+  box-shadow: 0 14px 24px rgba(47, 28, 6, 0.2);
   backdrop-filter: blur(6px);
 }
 
@@ -100,7 +101,7 @@ h2 {
 
 .subtitle {
   margin: 0 auto;
-  color: #faefce;
+  color: #49341a;
   max-width: 60ch;
   font-size: 1.08rem;
 }
@@ -163,7 +164,7 @@ h2 {
 
 .narration {
   margin: 0.3rem auto 0;
-  color: #f6e8c3;
+  color: #5d4628;
   font-style: italic;
   font-size: 1.05rem;
   max-width: 65ch;
@@ -171,6 +172,10 @@ h2 {
 
 .sorting .hat {
   animation: sortingReveal 2.8s ease;
+}
+
+.sorting-intense .hat {
+  animation: hatRumble 0.46s linear infinite;
 }
 
 .sorting .sparkles span {
@@ -189,9 +194,9 @@ textarea {
   width: 100%;
   border: 1px solid rgba(227, 200, 132, 0.56);
   border-radius: 10px;
-  background: rgba(6, 4, 13, 0.68);
+  background: rgba(255, 253, 243, 0.85);
   color: var(--ink);
-  font-family: "Lora", serif;
+  font-family: "Cormorant Garamond", serif;
 }
 
 input[type="text"] {
@@ -420,27 +425,29 @@ fieldset {
   border: 1px solid rgba(227, 200, 132, 0.4);
   border-radius: 14px;
   text-align: center;
-  background: rgba(9, 6, 19, 0.7);
+  background: rgba(255, 248, 228, 0.78);
 }
 
 .loading-title {
   margin: 0;
   font-family: "Cinzel", serif;
   letter-spacing: 0.04em;
-  color: #f4dca5;
+  color: #6a3d08;
 }
 
 .loading-line {
   margin: 0.5rem auto 0.8rem;
   max-width: 56ch;
+  min-height: 1.8rem;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .loading-btn {
   margin: 0 auto;
   min-width: 280px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.16);
-  color: #f9efd8;
+  border: 1px solid rgba(106, 61, 8, 0.24);
+  background: rgba(106, 61, 8, 0.12);
+  color: #4a2d07;
   cursor: default;
 }
 
@@ -451,6 +458,15 @@ fieldset {
 
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+.loading-panel.final-call .loading-line {
+  color: #7f1734;
+  font-family: "Cinzel", serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 10px rgba(127, 23, 52, 0.24);
+  transform: scale(1.03);
+}
 
 body.showing-result {
   background: var(--house-solid);
@@ -470,27 +486,27 @@ body.showing-result .quiz-card {
 }
 
 body.house-gryffindor {
-  --house-solid: #7e1525;
-  --house-deep: #55101a;
+  --house-solid: #7f1734;
+  --house-deep: #5d1226;
   --house-highlight: #f0c36a;
 }
 
 body.house-slytherin {
-  --house-solid: #0e683f;
-  --house-deep: #0b492d;
-  --house-highlight: #b8d4c8;
+  --house-solid: #1e5c3c;
+  --house-deep: #143c28;
+  --house-highlight: #b9bec4;
 }
 
 body.house-ravenclaw {
-  --house-solid: #21458b;
-  --house-deep: #152d5a;
+  --house-solid: #1c3f7c;
+  --house-deep: #122b52;
   --house-highlight: #d7b26a;
 }
 
 body.house-hufflepuff {
-  --house-solid: #ae862c;
-  --house-deep: #795a1b;
-  --house-highlight: #fae2a7;
+  --house-solid: #d2b020;
+  --house-deep: #1b1710;
+  --house-highlight: #f7dea1;
 }
 
 body.showing-result .result-card {
@@ -607,7 +623,8 @@ body.showing-result .sorting-call {
 
 body.showing-result #house-name {
   color: #fff5da !important;
-  text-shadow: 0 8px 25px rgba(0, 0, 0, 0.36);
+  text-shadow: 0 0 12px rgba(255, 245, 188, 0.65), 0 0 24px rgba(255, 244, 182, 0.28);
+  animation: glowPulse 2.2s ease-in-out infinite;
 }
 
 body.showing-result #house-line,
@@ -624,6 +641,39 @@ body.showing-result .button-row button {
   border: 1px solid rgba(255, 255, 255, 0.34);
   background: rgba(255, 255, 255, 0.2);
   color: #fffaf0;
+}
+
+.house-insights {
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.house-insights h3 {
+  margin: 0 0 0.4rem;
+  font-family: "Cinzel", serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+.quality-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.quality-pill {
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 1rem;
+}
+
+.house-characters {
+  margin: 0.55rem 0 0;
 }
 
 @media (max-width: 720px) {
@@ -671,6 +721,14 @@ body.showing-result .button-row button {
   100% { transform: translateY(0) rotate(0deg) scale(1); }
 }
 
+@keyframes hatRumble {
+  0% { transform: translateX(-1px) rotate(-2deg) scale(1.01); }
+  25% { transform: translateX(2px) rotate(2deg) scale(1.03); }
+  50% { transform: translateX(-2px) rotate(-1deg) scale(1.02); }
+  75% { transform: translateX(1px) rotate(2deg) scale(1.04); }
+  100% { transform: translateX(-1px) rotate(-2deg) scale(1.01); }
+}
+
 @keyframes hatPulse {
   0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.14; }
   50% { transform: translateX(-50%) scale(1.04); opacity: 0.22; }
@@ -691,4 +749,9 @@ body.showing-result .button-row button {
 @keyframes dotPulse {
   0%, 100% { opacity: 0.25; transform: translateY(0); }
   50% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { text-shadow: 0 0 12px rgba(255, 245, 188, 0.65), 0 0 24px rgba(255, 244, 182, 0.28); }
+  50% { text-shadow: 0 0 18px rgba(255, 248, 208, 0.9), 0 0 36px rgba(255, 241, 171, 0.45); }
 }

@@ -6,7 +6,7 @@
   <title>Harry Potter Sorting Hat App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Lora:wght@400;500;600&family=Uncial+Antiqua&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Cormorant+Garamond:wght@400;500;600;700&family=Uncial+Antiqua&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -82,8 +82,8 @@
         <button id="submit-btn" type="submit">Place The Hat On My Head</button>
       </form>
       <div id="loading-panel" class="loading-panel hidden" aria-live="polite">
-        <p class="loading-title">Consulting The Marauder's Map...</p>
-        <p id="loading-line" class="loading-line">The Sorting Hat whispers, "Hmm... difficult. Very difficult..."</p>
+        <p class="loading-title">Sorting Ceremony In Progress</p>
+        <p id="loading-line" class="loading-line">The hat is deciding...</p>
         <button type="button" class="loading-btn" disabled>
           Brewing Your House Destiny<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
         </button>
@@ -106,10 +106,15 @@
         <h2 id="house-name"></h2>
         <p id="house-line"></p>
         <p id="analysis-line" class="analysis-line"></p>
+        <div class="house-insights">
+          <h3 id="house-insight-title"></h3>
+          <div id="house-qualities" class="quality-list"></div>
+          <p id="house-characters" class="house-characters"></p>
+        </div>
         <div id="trait-breakdown" class="trait-breakdown"></div>
         <div id="score-breakdown" class="score-breakdown"></div>
         <div class="button-row">
-          <button id="share-btn" type="button">Download House Card</button>
+          <button id="share-btn" type="button">Share my house 🧙‍♂️</button>
           <button id="retry-btn" type="button">Sort Again</button>
         </div>
       </div>

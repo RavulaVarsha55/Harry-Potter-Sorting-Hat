@@ -17,10 +17,14 @@ const bgMusic = document.getElementById("bg-music");
 const drumrollSfx = document.getElementById("drumroll-sfx");
 const loadingPanel = document.getElementById("loading-panel");
 const loadingLine = document.getElementById("loading-line");
+const houseInsightTitle = document.getElementById("house-insight-title");
+const houseQualities = document.getElementById("house-qualities");
+const houseCharacters = document.getElementById("house-characters");
 
 let latestResult = null;
 let isSorting = false;
 let loadingLineInterval = null;
+let loadingSequenceTimers = [];
 let musicUserEnabled = true;
 
 const houseData = {
@@ -74,11 +78,38 @@ const sortingNarration = [
 ];
 
 const loadingReferences = [
-  "The portraits lean closer. The castle is listening.",
-  "An owl swoops by with a note marked: 'House decision pending.'",
-  "A phoenix-feather flickers and the Great Hall falls silent.",
-  "The hat mutters about courage, wit, loyalty, and ambition..."
+  "Thinking...",
+  "The hat is deciding...",
+  "The hall holds its breath as magic gathers...",
+  "The brim curls. A choice is about to be shouted."
 ];
+
+const houseProfiles = {
+  gryffindor: {
+    title: "Gryffindor",
+    qualities: ["Brave", "Courageous", "Daring"],
+    characters: ["Harry Potter", "Hermione Granger", "Ron Weasley"],
+    symbol: "🦁"
+  },
+  slytherin: {
+    title: "Slytherin",
+    qualities: ["Ambitious", "Resourceful", "Determined"],
+    characters: ["Draco Malfoy", "Severus Snape", "Regulus Black"],
+    symbol: "🐍"
+  },
+  ravenclaw: {
+    title: "Ravenclaw",
+    qualities: ["Wise", "Curious", "Inventive"],
+    characters: ["Luna Lovegood", "Cho Chang", "Filius Flitwick"],
+    symbol: "🦅"
+  },
+  hufflepuff: {
+    title: "Hufflepuff",
+    qualities: ["Loyal", "Patient", "Just"],
+    characters: ["Cedric Diggory", "Nymphadora Tonks", "Newt Scamander"],
+    symbol: "🦡"
+  }
+};
 
 function createEmptyHouseScores() {
   return {
@@ -250,6 +281,21 @@ function renderHouseScores(scores) {
     });
 }
 
+function renderHouseProfile(houseId) {
+  const profile = houseProfiles[houseId];
+  if (!profile) return;
+
+  houseInsightTitle.textContent = profile.title;
+  houseQualities.innerHTML = "";
+  profile.qualities.forEach((quality) => {
+    const pill = document.createElement("span");
+    pill.className = "quality-pill";
+    pill.textContent = quality;
+    houseQualities.appendChild(pill);
+  });
+  houseCharacters.textContent = `Characters: ${profile.characters.join(" • ")}`;
+}
+
 function startAmbience() {
   if (!bgMusic) return;
   bgMusic.volume = 0.34;
@@ -268,6 +314,7 @@ function stopAmbience() {
 
 function playDrumroll() {
   if (!drumrollSfx) return;
+  drumrollSfx.loop = true;
   drumrollSfx.currentTime = 0;
   const playPromise = drumrollSfx.play();
   if (playPromise && typeof playPromise.catch === "function") {
@@ -277,6 +324,7 @@ function playDrumroll() {
 
 function stopDrumroll() {
   if (!drumrollSfx) return;
+  drumrollSfx.loop = false;
   drumrollSfx.pause();
   drumrollSfx.currentTime = 0;
 }
@@ -295,24 +343,46 @@ function clearHouseScene() {
 
 function startLoadingReferences() {
   if (!loadingLine) return;
-  let idx = 0;
-  loadingLine.textContent = loadingReferences[idx];
-  if (loadingLineInterval) {
-    window.clearInterval(loadingLineInterval);
-  }
-  loadingLineInterval = window.setInterval(() => {
-    idx = (idx + 1) % loadingReferences.length;
-    loadingLine.textContent = loadingReferences[idx];
-  }, 700);
+  stopLoadingReferences();
+  loadingPanel.classList.remove("final-call");
+  loadingLine.textContent = loadingReferences[0];
+
+  loadingSequenceTimers.push(
+    window.setTimeout(() => {
+      loadingLine.textContent = loadingReferences[1];
+    }, 1300)
+  );
+
+  loadingSequenceTimers.push(
+    window.setTimeout(() => {
+      loadingLine.textContent = loadingReferences[2];
+      hatStage.classList.add("sorting-intense");
+    }, 3000)
+  );
+
+  loadingSequenceTimers.push(
+    window.setTimeout(() => {
+      loadingLine.textContent = loadingReferences[3];
+    }, 4600)
+  );
 }
 
-function stopLoadingReferences() {
+function announceHouseCall(houseLabel) {
+  if (!loadingLine || !loadingPanel) return;
+  loadingPanel.classList.add("final-call");
+  loadingLine.textContent = `✨ ${houseLabel.toUpperCase()} ✨`;
+}
+
+function stopLoadingReferences(resetText = true) {
   if (loadingLineInterval) {
     window.clearInterval(loadingLineInterval);
     loadingLineInterval = null;
   }
-  if (loadingLine) {
-    loadingLine.textContent = "The Sorting Hat whispers, \"Hmm... difficult. Very difficult...\"";
+  loadingSequenceTimers.forEach((timerId) => window.clearTimeout(timerId));
+  loadingSequenceTimers = [];
+  loadingPanel.classList.remove("final-call");
+  if (resetText && loadingLine) {
+    loadingLine.textContent = "The hat is deciding...";
   }
 }
 
@@ -362,15 +432,15 @@ function drawShareCard() {
   ctx.fillText(house.label.toUpperCase(), 84, 320);
 
   ctx.fillStyle = "#faecc8";
-  ctx.font = "46px Lora, serif";
+  ctx.font = "46px Cormorant Garamond, serif";
   wrapText(ctx, `${studentName}: ${house.line}`, 84, 420, 920, 56);
 
   ctx.fillStyle = "rgba(248, 235, 205, 0.95)";
-  ctx.font = "34px Lora, serif";
+  ctx.font = "34px Cormorant Garamond, serif";
   wrapText(ctx, analysis, 84, 650, 920, 42);
 
   ctx.fillStyle = "rgba(248, 235, 205, 0.9)";
-  ctx.font = "31px Lora, serif";
+  ctx.font = "31px Cormorant Garamond, serif";
   wrapText(ctx, `${orderedScores}  •  Confidence: ${confidence}%`, 84, 810, 920, 40);
 
   ctx.fillStyle = "#dfbf7d";
@@ -399,12 +469,40 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
 }
 
-function downloadShareCard() {
-  drawShareCard();
-  const link = document.createElement("a");
-  link.href = shareCanvas.toDataURL("image/png");
-  link.download = "hogwarts-sorting-result.png";
-  link.click();
+async function shareHouseResult() {
+  if (!latestResult) return;
+  const profile = houseProfiles[latestResult.house.label.toLowerCase()] || {};
+  const symbol = profile.symbol || "✨";
+  const url = window.location.href;
+  const text = `I got ${latestResult.house.label}! ${symbol}\nTry the sorting hat here: ${url}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Harry Potter Sorting Hat Result",
+        text,
+        url
+      });
+      return;
+    } catch {
+      return;
+    }
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      shareBtn.textContent = "Copied to clipboard!";
+      window.setTimeout(() => {
+        shareBtn.textContent = "Share my house 🧙‍♂️";
+      }, 1600);
+      return;
+    } catch {
+      // ignore and fallback
+    }
+  }
+
+  window.prompt("Copy your result:", text);
 }
 
 form.addEventListener("submit", (event) => {
@@ -446,6 +544,12 @@ form.addEventListener("submit", (event) => {
   stopAmbience();
   playDrumroll();
 
+  loadingSequenceTimers.push(
+    window.setTimeout(() => {
+      announceHouseCall(house.label);
+    }, 5600)
+  );
+
   window.setTimeout(() => {
     stopDrumroll();
 
@@ -456,8 +560,9 @@ form.addEventListener("submit", (event) => {
 
     renderTraitBars(personality);
     renderHouseScores(result.totalScores);
+    renderHouseProfile(result.winnerId);
 
-    stopLoadingReferences();
+    stopLoadingReferences(false);
     loadingPanel.classList.add("hidden");
     quizCard.classList.add("hidden");
     resultCard.classList.remove("hidden");
@@ -470,9 +575,10 @@ form.addEventListener("submit", (event) => {
     shareBtn.disabled = false;
     submitBtn.disabled = false;
     hatStage.classList.remove("sorting");
+    hatStage.classList.remove("sorting-intense");
     narration.textContent = `The hall erupts in applause for ${studentName}.`;
     isSorting = false;
-  }, 2600);
+  }, 6400);
 });
 
 retryBtn.addEventListener("click", () => {
@@ -484,6 +590,8 @@ retryBtn.addEventListener("click", () => {
   quizCard.classList.remove("hidden");
   loadingPanel.classList.add("hidden");
   form.classList.remove("hidden");
+  hatStage.classList.remove("sorting");
+  hatStage.classList.remove("sorting-intense");
   if (musicUserEnabled) {
     startAmbience();
   }
@@ -491,7 +599,7 @@ retryBtn.addEventListener("click", () => {
   latestResult = null;
 });
 
-shareBtn.addEventListener("click", downloadShareCard);
+shareBtn.addEventListener("click", shareHouseResult);
 
 musicToggleBtn.addEventListener("click", () => {
   if (bgMusic && !bgMusic.paused) {
