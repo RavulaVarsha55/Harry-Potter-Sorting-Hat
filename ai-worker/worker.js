@@ -104,6 +104,33 @@ async function callOpenRouter(apiKey, model, payload) {
   };
 }
 
+function shouldTryNextModel(message) {
+  const text = String(message || "").toLowerCase();
+  return (
+    text.includes("error 429") ||
+    text.includes("rate-limit") ||
+    text.includes("rate limit") ||
+    text.includes("temporarily rate-limited") ||
+    text.includes("no endpoints found") ||
+    text.includes("developer instruction is not enabled")
+  );
+}
+
+async function callWithFallbackModels(apiKey, payload, models) {
+  let lastError = null;
+  for (const model of models) {
+    try {
+      return await callOpenRouter(apiKey, model, payload);
+    } catch (error) {
+      lastError = error;
+      if (!shouldTryNextModel(error?.message)) {
+        throw error;
+      }
+    }
+  }
+  throw lastError || new Error("No model could complete the request");
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -135,8 +162,22 @@ export default {
     }
 
     try {
-      const model = env.AI_MODEL || "meta-llama/llama-3.1-8b-instruct:free";
-      const result = await callOpenRouter(env.OPENROUTER_API_KEY, model, payload);
+      const fallbackModels = [
+        env.AI_MODEL,
+        "openai/gpt-oss-20b:free",
+        "qwen/qwen3-4b:free",
+        "openai/gpt-oss-120b:free",
+        "nvidia/nemotron-nano-9b-v2:free"
+      ]
+        .filter(Boolean)
+        .map((item) => String(item).trim())
+        .filter((item, index, list) => list.indexOf(item) === index);
+
+      const result = await callWithFallbackModels(
+        env.OPENROUTER_API_KEY,
+        payload,
+        fallbackModels
+      );
       return json(result, 200);
     } catch (error) {
       return json({ error: String(error.message || error) }, 502);
