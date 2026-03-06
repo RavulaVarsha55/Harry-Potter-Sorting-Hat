@@ -12,9 +12,16 @@ const shareBtn = document.getElementById("share-btn");
 const retryBtn = document.getElementById("retry-btn");
 const shareCanvas = document.getElementById("share-canvas");
 const submitBtn = document.getElementById("submit-btn");
+const musicToggleBtn = document.getElementById("music-toggle");
+const soundToggleBtn = document.getElementById("sound-toggle");
+const bgMusic = document.getElementById("bg-music");
 
 let latestResult = null;
 let isSorting = false;
+let audioContext = null;
+let sfxEnabled = true;
+let resultSparkleInterval = null;
+let musicStarted = false;
 
 const houseData = {
   gryffindor: {
@@ -206,27 +213,129 @@ function renderHouseScores(scores) {
     });
 }
 
-function playSortingChime() {
+function getAudioContext() {
+  if (audioContext) return audioContext;
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
+  if (!AudioContextClass) return null;
+  audioContext = new AudioContextClass();
+  return audioContext;
+}
 
-  const ctx = new AudioContextClass();
+function playSoftTone(ctx, frequency, start, duration, type, gainLevel) {
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(gainLevel, start + 0.08);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration + 0.02);
+}
+
+function playSortingChime() {
+  if (!sfxEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === "suspended") {
+    ctx.resume();
+  }
   const start = ctx.currentTime;
   const notes = [392, 523.25, 659.25, 783.99, 659.25, 523.25];
 
   notes.forEach((frequency, i) => {
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(frequency, start + i * 0.12);
-    gain.gain.setValueAtTime(0.0001, start + i * 0.12);
-    gain.gain.exponentialRampToValueAtTime(0.09, start + i * 0.12 + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + i * 0.12 + 0.36);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start(start + i * 0.12);
-    oscillator.stop(start + i * 0.12 + 0.38);
+    playSoftTone(ctx, frequency, start + i * 0.12, 0.34, "triangle", 0.085);
   });
+}
+
+function playSpellSpark() {
+  if (!sfxEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === "suspended") {
+    ctx.resume();
+  }
+  const now = ctx.currentTime;
+  [1174.66, 1567.98].forEach((freq, idx) => {
+    playSoftTone(ctx, freq, now + idx * 0.06, 0.28, "sine", 0.05);
+  });
+}
+
+function playResultSparkle() {
+  if (!sfxEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === "suspended") {
+    ctx.resume();
+  }
+  const now = ctx.currentTime;
+  const highNotes = [987.77, 1174.66, 1318.51, 1567.98];
+  const chosen = highNotes[Math.floor(Math.random() * highNotes.length)];
+  playSoftTone(ctx, chosen, now, 0.26, "sine", 0.03);
+  playSoftTone(ctx, chosen * 1.5, now + 0.04, 0.2, "triangle", 0.015);
+}
+
+function scheduleAmbience() {
+  if (!bgMusic) return;
+  bgMusic.volume = 0.34;
+  const playPromise = bgMusic.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(() => {});
+  }
+}
+
+function startAmbience() {
+  if (!bgMusic) return;
+  if (!bgMusic.paused) return;
+  scheduleAmbience();
+  musicToggleBtn.textContent = "Stop Magical Music";
+  musicStarted = true;
+  playSpellSpark();
+}
+
+function stopAmbience() {
+  if (bgMusic) {
+    bgMusic.pause();
+  }
+  musicToggleBtn.textContent = "Start Magical Music";
+  playSpellSpark();
+}
+
+function activateHouseScene(houseId) {
+  const body = document.body;
+  body.classList.add("showing-result");
+  body.classList.remove("house-gryffindor", "house-slytherin", "house-ravenclaw", "house-hufflepuff");
+  body.classList.add(`house-${houseId}`);
+}
+
+function clearHouseScene() {
+  const body = document.body;
+  body.classList.remove("showing-result", "house-gryffindor", "house-slytherin", "house-ravenclaw", "house-hufflepuff");
+}
+
+function resumeQuizMusic() {
+  if (!musicStarted) return;
+  if (!bgMusic) return;
+  if (!bgMusic.paused) return;
+  startAmbience();
+}
+
+function startResultSparkles() {
+  stopResultSparkles();
+  resultSparkleInterval = window.setInterval(() => {
+    if (Math.random() > 0.42) {
+      playResultSparkle();
+    }
+  }, 900);
+}
+
+function stopResultSparkles() {
+  if (resultSparkleInterval) {
+    window.clearInterval(resultSparkleInterval);
+    resultSparkleInterval = null;
+  }
 }
 
 function updateNarration(index) {
@@ -275,15 +384,15 @@ function drawShareCard() {
   ctx.fillText(house.label.toUpperCase(), 84, 320);
 
   ctx.fillStyle = "#faecc8";
-  ctx.font = "46px IM Fell English, serif";
+  ctx.font = "46px Lora, serif";
   wrapText(ctx, `${studentName}: ${house.line}`, 84, 420, 920, 56);
 
   ctx.fillStyle = "rgba(248, 235, 205, 0.95)";
-  ctx.font = "34px IM Fell English, serif";
+  ctx.font = "34px Lora, serif";
   wrapText(ctx, analysis, 84, 650, 920, 42);
 
   ctx.fillStyle = "rgba(248, 235, 205, 0.9)";
-  ctx.font = "31px IM Fell English, serif";
+  ctx.font = "31px Lora, serif";
   wrapText(ctx, `${orderedScores}  •  Confidence: ${confidence}%`, 84, 810, 920, 40);
 
   ctx.fillStyle = "#dfbf7d";
@@ -364,6 +473,10 @@ form.addEventListener("submit", (event) => {
 
     quizCard.classList.add("hidden");
     resultCard.classList.remove("hidden");
+    stopAmbience();
+    activateHouseScene(result.winnerId);
+    startResultSparkles();
+    playResultSparkle();
     shareBtn.disabled = false;
     submitBtn.disabled = false;
     hatStage.classList.remove("sorting");
@@ -374,10 +487,39 @@ form.addEventListener("submit", (event) => {
 
 retryBtn.addEventListener("click", () => {
   form.reset();
+  stopResultSparkles();
+  clearHouseScene();
   resultCard.classList.add("hidden");
   quizCard.classList.remove("hidden");
+  resumeQuizMusic();
   narration.textContent = "The hat yawns awake and waits for the next witch or wizard...";
   latestResult = null;
 });
 
 shareBtn.addEventListener("click", downloadShareCard);
+
+musicToggleBtn.addEventListener("click", () => {
+  if (bgMusic && !bgMusic.paused) {
+    stopAmbience();
+  } else {
+    startAmbience();
+  }
+});
+
+soundToggleBtn.addEventListener("click", () => {
+  sfxEnabled = !sfxEnabled;
+  soundToggleBtn.textContent = sfxEnabled ? "Sound Effects: On" : "Sound Effects: Off";
+  if (sfxEnabled) {
+    playSpellSpark();
+  }
+});
+
+form.addEventListener(
+  "pointerdown",
+  () => {
+    if (!musicStarted) {
+      startAmbience();
+    }
+  },
+  { once: true }
+);

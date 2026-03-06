@@ -6,11 +6,12 @@
   <title>Harry Potter Sorting Hat App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=IM+Fell+English:ital@0;1&family=Uncial+Antiqua&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Lora:wght@400;500;600&family=Uncial+Antiqua&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="app-shell">
+    <audio id="bg-music" src="mischievous-wizard.mp3" preload="auto" loop></audio>
     <section class="hero-card">
       <p class="crest">First-Year Arrival At Hogwarts</p>
       <h1>Harry Potter Sorting Hat App</h1>
@@ -24,6 +25,10 @@
         </div>
       </div>
       <p id="narration" class="narration">The hat yawns awake and waits for the next witch or wizard...</p>
+      <div class="audio-controls">
+        <button id="music-toggle" type="button">Start Magical Music</button>
+        <button id="sound-toggle" type="button">Sound Effects: On</button>
+      </div>
     </section>
 
     <section class="quiz-card" id="quiz-card">
@@ -81,15 +86,27 @@
     </section>
 
     <section class="result-card hidden" id="result-card" aria-live="polite">
-      <p class="sorting-call">The hat bellows across the Great Hall...</p>
-      <h2 id="house-name"></h2>
-      <p id="house-line"></p>
-      <p id="analysis-line" class="analysis-line"></p>
-      <div id="trait-breakdown" class="trait-breakdown"></div>
-      <div id="score-breakdown" class="score-breakdown"></div>
-      <div class="button-row">
-        <button id="share-btn" type="button">Download House Card</button>
-        <button id="retry-btn" type="button">Sort Again</button>
+      <div class="result-scene" aria-hidden="true">
+        <div class="result-hat-bg">🎩</div>
+        <div class="scene-orb orb-one"></div>
+        <div class="scene-orb orb-two"></div>
+        <div class="scene-orb orb-three"></div>
+        <div class="scene-sparkles">
+          <span>✦</span><span>✧</span><span>✶</span><span>✦</span><span>✧</span><span>✶</span><span>✦</span><span>✧</span>
+        </div>
+      </div>
+
+      <div class="result-content">
+        <p class="sorting-call">The hat bellows across the Great Hall...</p>
+        <h2 id="house-name"></h2>
+        <p id="house-line"></p>
+        <p id="analysis-line" class="analysis-line"></p>
+        <div id="trait-breakdown" class="trait-breakdown"></div>
+        <div id="score-breakdown" class="score-breakdown"></div>
+        <div class="button-row">
+          <button id="share-btn" type="button">Download House Card</button>
+          <button id="retry-btn" type="button">Sort Again</button>
+        </div>
       </div>
       <canvas id="share-canvas" class="hidden" width="1080" height="1080" aria-hidden="true"></canvas>
     </section>

@@ -11,6 +11,9 @@
   --slytherin: #146242;
   --ravenclaw: #1e407f;
   --hufflepuff: #ae862c;
+  --house-solid: #1d1330;
+  --house-deep: #130d22;
+  --house-highlight: #e3c884;
 }
 
 * {
@@ -21,7 +24,8 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ink);
-  font-family: "IM Fell English", serif;
+  font-family: "Lora", serif;
+  line-height: 1.5;
   background:
     radial-gradient(circle at 10% 12%, rgba(227, 200, 132, 0.24), transparent 35%),
     radial-gradient(circle at 86% 8%, rgba(212, 200, 233, 0.2), transparent 38%),
@@ -49,6 +53,10 @@ body {
     var(--card-bg);
   box-shadow: 0 16px 32px rgba(4, 3, 9, 0.46);
   backdrop-filter: blur(6px);
+}
+
+.hero-card {
+  text-align: center;
 }
 
 .hero-card::before,
@@ -88,7 +96,7 @@ h2 {
 }
 
 .subtitle {
-  margin: 0;
+  margin: 0 auto;
   color: #faefce;
   max-width: 60ch;
   font-size: 1.08rem;
@@ -151,10 +159,11 @@ h2 {
 .sparkles span:nth-child(6) { left: 56%; top: 72%; animation-delay: 2.3s; }
 
 .narration {
-  margin: 0.2rem 0 0;
+  margin: 0.3rem auto 0;
   color: #f6e8c3;
   font-style: italic;
   font-size: 1.05rem;
+  max-width: 65ch;
 }
 
 .sorting .hat {
@@ -169,6 +178,7 @@ h2 {
   display: block;
   margin-bottom: 0.35rem;
   color: #ecd8a5;
+  font-weight: 600;
 }
 
 input[type="text"],
@@ -178,37 +188,39 @@ textarea {
   border-radius: 10px;
   background: rgba(6, 4, 13, 0.68);
   color: var(--ink);
-  font-family: inherit;
+  font-family: "Lora", serif;
 }
 
 input[type="text"] {
-  padding: 0.7rem;
+  padding: 0.78rem;
   margin-bottom: 0.9rem;
-  font-size: 1rem;
+  font-size: 1.04rem;
 }
 
 textarea {
-  padding: 0.78rem;
+  padding: 0.82rem;
   resize: vertical;
   min-height: 140px;
-  font-size: 1rem;
+  font-size: 1.03rem;
 }
 
 fieldset {
   margin: 0 0 0.9rem;
-  padding: 0.75rem;
+  padding: 0.85rem 0.95rem;
   border: 1px solid rgba(227, 200, 132, 0.33);
   border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 legend {
   color: #efd39a;
   padding: 0 0.35rem;
+  font-weight: 600;
 }
 
 label {
   display: block;
-  margin: 0.34rem 0;
+  margin: 0.4rem 0;
   line-height: 1.32;
 }
 
@@ -221,9 +233,9 @@ button {
   border-radius: 999px;
   padding: 0.73rem 1.23rem;
   margin-top: 0.85rem;
-  font-family: "Uncial Antiqua", cursive;
-  font-size: 0.98rem;
-  letter-spacing: 0.04em;
+  font-family: "Cinzel", serif;
+  font-size: 0.96rem;
+  letter-spacing: 0.06em;
   color: #241704;
   background: linear-gradient(90deg, #efdfb7, #d5aa5a);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.32);
@@ -309,6 +321,200 @@ button:disabled {
   display: flex;
   gap: 0.65rem;
   flex-wrap: wrap;
+  justify-content: center;
+}
+
+.audio-controls {
+  margin-top: 0.9rem;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.quiz-card,
+.result-card {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.quiz-card h2,
+.result-card {
+  text-align: center;
+}
+
+#quiz-form {
+  text-align: left;
+}
+
+.trait-breakdown,
+.score-breakdown {
+  text-align: left;
+}
+
+body.showing-result {
+  background: var(--house-solid);
+}
+
+body.showing-result .app-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 100vh;
+}
+
+body.showing-result .hero-card,
+body.showing-result .quiz-card {
+  display: none;
+}
+
+body.house-gryffindor {
+  --house-solid: #7e1525;
+  --house-deep: #55101a;
+  --house-highlight: #f0c36a;
+}
+
+body.house-slytherin {
+  --house-solid: #0e683f;
+  --house-deep: #0b492d;
+  --house-highlight: #b8d4c8;
+}
+
+body.house-ravenclaw {
+  --house-solid: #21458b;
+  --house-deep: #152d5a;
+  --house-highlight: #d7b26a;
+}
+
+body.house-hufflepuff {
+  --house-solid: #ae862c;
+  --house-deep: #795a1b;
+  --house-highlight: #fae2a7;
+}
+
+body.showing-result .result-card {
+  min-height: 100vh;
+  margin: 0;
+  border-radius: 0;
+  border: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at 8% 14%, rgba(255, 255, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 92% 10%, rgba(255, 255, 255, 0.07), transparent 26%),
+    linear-gradient(180deg, var(--house-solid), var(--house-deep));
+  box-shadow: none;
+}
+
+body.showing-result .result-card::before {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.result-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.result-content {
+  width: min(760px, 92%);
+  position: relative;
+  z-index: 2;
+}
+
+.result-hat-bg {
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  transform: translateX(-50%);
+  font-size: clamp(7rem, 19vw, 14rem);
+  opacity: 0.16;
+  filter: blur(0.4px);
+  animation: hatPulse 4s ease-in-out infinite;
+}
+
+.scene-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: 0.35;
+  animation: orbDrift 7s ease-in-out infinite;
+}
+
+.orb-one {
+  width: 190px;
+  height: 190px;
+  top: 22%;
+  left: 16%;
+  background: radial-gradient(circle, var(--house-highlight), transparent 67%);
+}
+
+.orb-two {
+  width: 240px;
+  height: 240px;
+  top: 52%;
+  right: 12%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.36), transparent 67%);
+  animation-delay: 1.2s;
+}
+
+.orb-three {
+  width: 140px;
+  height: 140px;
+  top: 68%;
+  left: 23%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 68%);
+  animation-delay: 2.2s;
+}
+
+.scene-sparkles {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-sparkles span {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1.15rem;
+  opacity: 0;
+  animation: sceneTwinkle 3.4s linear infinite;
+}
+
+.scene-sparkles span:nth-child(1) { left: 17%; top: 30%; animation-delay: 0s; }
+.scene-sparkles span:nth-child(2) { left: 31%; top: 24%; animation-delay: 0.5s; }
+.scene-sparkles span:nth-child(3) { left: 47%; top: 18%; animation-delay: 1s; }
+.scene-sparkles span:nth-child(4) { left: 66%; top: 26%; animation-delay: 1.4s; }
+.scene-sparkles span:nth-child(5) { left: 78%; top: 37%; animation-delay: 1.8s; }
+.scene-sparkles span:nth-child(6) { left: 73%; top: 58%; animation-delay: 2.2s; }
+.scene-sparkles span:nth-child(7) { left: 28%; top: 65%; animation-delay: 2.6s; }
+.scene-sparkles span:nth-child(8) { left: 52%; top: 72%; animation-delay: 3s; }
+
+body.showing-result .sorting-call {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+body.showing-result #house-name {
+  color: #fff5da !important;
+  text-shadow: 0 8px 25px rgba(0, 0, 0, 0.36);
+}
+
+body.showing-result #house-line,
+body.showing-result .analysis-line {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+body.showing-result .trait-row,
+body.showing-result .house-score {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+body.showing-result .button-row button {
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fffaf0;
 }
 
 @media (max-width: 720px) {
@@ -327,6 +533,11 @@ button:disabled {
   .narration,
   .subtitle {
     font-size: 1rem;
+  }
+
+  .result-hat-bg {
+    top: 10%;
+    opacity: 0.12;
   }
 }
 
@@ -349,4 +560,21 @@ button:disabled {
   58% { transform: translateY(-8px) rotate(-6deg) scale(1.08); }
   75% { transform: translateY(3px) rotate(4deg) scale(1.02); }
   100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+@keyframes hatPulse {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.14; }
+  50% { transform: translateX(-50%) scale(1.04); opacity: 0.22; }
+}
+
+@keyframes orbDrift {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+  50% { transform: translateY(-16px) translateX(8px); opacity: 0.45; }
+}
+
+@keyframes sceneTwinkle {
+  0% { opacity: 0; transform: scale(0.7) translateY(3px); }
+  24% { opacity: 0.86; transform: scale(1.05) translateY(-2px); }
+  58% { opacity: 0.2; transform: scale(0.9) translateY(-6px); }
+  100% { opacity: 0; transform: scale(0.65) translateY(-11px); }
 }
