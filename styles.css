@@ -1,12 +1,12 @@
 :root {
-  --night-1: #f2e5c8;
-  --night-2: #e4d2aa;
-  --night-3: #d8c093;
-  --gold: #8a5f20;
-  --ink: #2e1f0f;
-  --mist: #5f4c32;
-  --card-bg: rgba(249, 239, 216, 0.92);
-  --card-edge: rgba(138, 95, 32, 0.44);
+  --night-1: #090711;
+  --night-2: #1d1330;
+  --night-3: #2e1c4c;
+  --gold: #e3c884;
+  --ink: #f7ecd3;
+  --mist: #d4c8e9;
+  --card-bg: rgba(17, 12, 31, 0.76);
+  --card-edge: rgba(227, 200, 132, 0.46);
   --gryffindor: #7f1734;
   --slytherin: #1e5c3c;
   --ravenclaw: #1c3f7c;
@@ -29,10 +29,9 @@ body {
   font-family: "Cormorant Garamond", serif;
   line-height: 1.5;
   background:
-    radial-gradient(circle at 14% 12%, rgba(138, 95, 32, 0.16), transparent 32%),
-    radial-gradient(circle at 85% 10%, rgba(255, 248, 225, 0.35), transparent 35%),
-    radial-gradient(circle at 50% 92%, rgba(138, 95, 32, 0.1), transparent 40%),
-    repeating-linear-gradient(12deg, rgba(88, 60, 27, 0.02) 0 2px, rgba(255, 255, 255, 0.01) 2px 4px),
+    radial-gradient(circle at 10% 12%, rgba(227, 200, 132, 0.24), transparent 35%),
+    radial-gradient(circle at 86% 8%, rgba(212, 200, 233, 0.2), transparent 38%),
+    radial-gradient(circle at 52% 95%, rgba(150, 87, 214, 0.18), transparent 40%),
     linear-gradient(165deg, var(--night-1), var(--night-2) 45%, var(--night-3));
 }
 
@@ -52,9 +51,9 @@ body {
   border-radius: 20px;
   padding: 1.2rem 1.35rem;
   background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.2), transparent 28%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.04), transparent 28%),
     var(--card-bg);
-  box-shadow: 0 14px 24px rgba(47, 28, 6, 0.2);
+  box-shadow: 0 16px 32px rgba(4, 3, 9, 0.46);
   backdrop-filter: blur(6px);
 }
 
@@ -101,7 +100,7 @@ h2 {
 
 .subtitle {
   margin: 0 auto;
-  color: #49341a;
+  color: #faefce;
   max-width: 60ch;
   font-size: 1.08rem;
 }
@@ -164,7 +163,7 @@ h2 {
 
 .narration {
   margin: 0.3rem auto 0;
-  color: #5d4628;
+  color: #f6e8c3;
   font-style: italic;
   font-size: 1.05rem;
   max-width: 65ch;
@@ -194,7 +193,7 @@ textarea {
   width: 100%;
   border: 1px solid rgba(227, 200, 132, 0.56);
   border-radius: 10px;
-  background: rgba(255, 253, 243, 0.85);
+  background: rgba(6, 4, 13, 0.68);
   color: var(--ink);
   font-family: "Cormorant Garamond", serif;
 }
@@ -425,14 +424,14 @@ fieldset {
   border: 1px solid rgba(227, 200, 132, 0.4);
   border-radius: 14px;
   text-align: center;
-  background: rgba(255, 248, 228, 0.78);
+  background: rgba(9, 6, 19, 0.76);
 }
 
 .loading-title {
   margin: 0;
   font-family: "Cinzel", serif;
   letter-spacing: 0.04em;
-  color: #6a3d08;
+  color: #f4dca5;
 }
 
 .loading-line {
@@ -445,9 +444,9 @@ fieldset {
 .loading-btn {
   margin: 0 auto;
   min-width: 280px;
-  border: 1px solid rgba(106, 61, 8, 0.24);
-  background: rgba(106, 61, 8, 0.12);
-  color: #4a2d07;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.16);
+  color: #f9efd8;
   cursor: default;
 }
 
