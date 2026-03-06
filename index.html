@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harry Potter Sorting Hat App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=IM+Fell+English:ital@0;1&family=Uncial+Antiqua&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-card">
+      <p class="crest">First-Year Arrival At Hogwarts</p>
+      <h1>Harry Potter Sorting Hat App</h1>
+      <p class="subtitle">The hat listens to your choices, your words, and your spirit. Then it declares your house.</p>
+      <div class="hat-stage" id="hat-stage" aria-hidden="true">
+        <div class="hat-glow"></div>
+        <div class="moon"></div>
+        <div class="hat">🎩</div>
+        <div class="sparkles">
+          <span>✦</span><span>✧</span><span>✶</span><span>✦</span><span>✧</span><span>✦</span>
+        </div>
+      </div>
+      <p id="narration" class="narration">The hat yawns awake and waits for the next witch or wizard...</p>
+    </section>
+
+    <section class="quiz-card" id="quiz-card">
+      <h2>Sorting Ceremony Quiz</h2>
+      <form id="quiz-form">
+        <label for="student-name" class="text-label">Your Hogwarts Name</label>
+        <input id="student-name" name="studentName" type="text" maxlength="45" placeholder="Hermione Granger" required />
+
+        <fieldset>
+          <legend>1. You hear a strange sound in the Forbidden Forest. You...</legend>
+          <label><input type="radio" name="q1" value="gryffindor" required /> Follow it immediately with wand raised.</label>
+          <label><input type="radio" name="q1" value="ravenclaw" /> Investigate clues and identify the creature first.</label>
+          <label><input type="radio" name="q1" value="hufflepuff" /> Gather trusted friends before moving ahead.</label>
+          <label><input type="radio" name="q1" value="slytherin" /> Circle around quietly and gain the advantage.</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>2. Which magical object do you choose?</legend>
+          <label><input type="radio" name="q2" value="ravenclaw" required /> A self-writing spell journal.</label>
+          <label><input type="radio" name="q2" value="gryffindor" /> A phoenix-feather dueling wand.</label>
+          <label><input type="radio" name="q2" value="hufflepuff" /> A warm satchel full of healing herbs.</label>
+          <label><input type="radio" name="q2" value="slytherin" /> A ring that reveals hidden pathways.</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>3. What matters most in a friend?</legend>
+          <label><input type="radio" name="q3" value="hufflepuff" required /> Loyalty through every storm.</label>
+          <label><input type="radio" name="q3" value="gryffindor" /> Courage to stand beside me in danger.</label>
+          <label><input type="radio" name="q3" value="ravenclaw" /> Curiosity and clever conversation.</label>
+          <label><input type="radio" name="q3" value="slytherin" /> Confidence and unstoppable drive.</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>4. You only have one hour before exams. You...</legend>
+          <label><input type="radio" name="q4" value="ravenclaw" required /> Build a strategy and focus on key concepts.</label>
+          <label><input type="radio" name="q4" value="hufflepuff" /> Help classmates review as a team.</label>
+          <label><input type="radio" name="q4" value="slytherin" /> Prioritize points and maximize outcomes.</label>
+          <label><input type="radio" name="q4" value="gryffindor" /> Trust your instincts and stay bold.</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>5. Which Hogwarts spot feels like home?</legend>
+          <label><input type="radio" name="q5" value="gryffindor" required /> The roaring fireplace of a busy common room.</label>
+          <label><input type="radio" name="q5" value="ravenclaw" /> The quiet tower under moonlight and books.</label>
+          <label><input type="radio" name="q5" value="hufflepuff" /> The cozy kitchens and friendly corridors.</label>
+          <label><input type="radio" name="q5" value="slytherin" /> The stone halls beside the black lake.</label>
+        </fieldset>
+
+        <h2>AI Personality Analysis</h2>
+        <label for="traits" class="text-label">In 4-6 lines, describe how you handle pressure, conflict, friendship, and your biggest ambition.</label>
+        <textarea id="traits" name="traits" rows="7" placeholder="When things get intense, I stay calm and work through the problem. I protect my people, but I also want to be the best at what I do..." required></textarea>
+
+        <button id="submit-btn" type="submit">Place The Hat On My Head</button>
+      </form>
+    </section>
+
+    <section class="result-card hidden" id="result-card" aria-live="polite">
+      <p class="sorting-call">The hat bellows across the Great Hall...</p>
+      <h2 id="house-name"></h2>
+      <p id="house-line"></p>
+      <p id="analysis-line" class="analysis-line"></p>
+      <div id="trait-breakdown" class="trait-breakdown"></div>
+      <div id="score-breakdown" class="score-breakdown"></div>
+      <div class="button-row">
+        <button id="share-btn" type="button">Download House Card</button>
+        <button id="retry-btn" type="button">Sort Again</button>
+      </div>
+      <canvas id="share-canvas" class="hidden" width="1080" height="1080" aria-hidden="true"></canvas>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

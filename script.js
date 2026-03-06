@@ -1,0 +1,383 @@
+const form = document.getElementById("quiz-form");
+const quizCard = document.getElementById("quiz-card");
+const resultCard = document.getElementById("result-card");
+const hatStage = document.getElementById("hat-stage");
+const narration = document.getElementById("narration");
+const houseName = document.getElementById("house-name");
+const houseLine = document.getElementById("house-line");
+const analysisLine = document.getElementById("analysis-line");
+const traitBreakdown = document.getElementById("trait-breakdown");
+const scoreBreakdown = document.getElementById("score-breakdown");
+const shareBtn = document.getElementById("share-btn");
+const retryBtn = document.getElementById("retry-btn");
+const shareCanvas = document.getElementById("share-canvas");
+const submitBtn = document.getElementById("submit-btn");
+
+let latestResult = null;
+let isSorting = false;
+
+const houseData = {
+  gryffindor: {
+    label: "Gryffindor",
+    color: "#9d1b2e",
+    line: "Your spark runs toward daring action, fierce heart, and bright courage under pressure.",
+    focus: "bravery"
+  },
+  slytherin: {
+    label: "Slytherin",
+    color: "#146242",
+    line: "Your magic is strategic, ambitious, and quietly unstoppable when goals are on the line.",
+    focus: "ambition"
+  },
+  ravenclaw: {
+    label: "Ravenclaw",
+    color: "#1e407f",
+    line: "Your mind leads with wit, curiosity, and inventive thinking that turns puzzles into pathways.",
+    focus: "intellect"
+  },
+  hufflepuff: {
+    label: "Hufflepuff",
+    color: "#ae862c",
+    line: "Your strength is steady: loyal friendships, fair choices, and patient, grounded care.",
+    focus: "loyalty"
+  }
+};
+
+const traitKeywords = {
+  bravery: ["brave", "courage", "bold", "risk", "fearless", "protect", "defend", "stand up", "danger", "duel"],
+  ambition: ["ambition", "goal", "win", "influence", "lead", "success", "strategy", "power", "achieve", "resourceful"],
+  intellect: ["learn", "study", "logic", "curious", "ideas", "analyze", "knowledge", "creative", "question", "research"],
+  loyalty: ["loyal", "kind", "fair", "friend", "support", "patience", "help", "team", "trust", "care"]
+};
+
+const traitHouseMap = {
+  bravery: "gryffindor",
+  ambition: "slytherin",
+  intellect: "ravenclaw",
+  loyalty: "hufflepuff"
+};
+
+const sortingNarration = [
+  "The brim twitches. Ancient whispers drift through the Great Hall...",
+  "It studies your choices and weighs every hidden motive...",
+  "It listens to your personality, your courage, your ambition...",
+  "A decision flashes like wandlight. The hat has chosen."
+];
+
+function createEmptyHouseScores() {
+  return {
+    gryffindor: 0,
+    slytherin: 0,
+    ravenclaw: 0,
+    hufflepuff: 0
+  };
+}
+
+function normalizeText(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function analyzePersonality(text) {
+  const normalized = normalizeText(text);
+  const words = normalized ? normalized.split(" ") : [];
+  const traits = {
+    bravery: 0,
+    ambition: 0,
+    intellect: 0,
+    loyalty: 0
+  };
+
+  Object.entries(traitKeywords).forEach(([trait, keywords]) => {
+    keywords.forEach((word) => {
+      if (normalized.includes(word)) {
+        traits[trait] += 1;
+      }
+    });
+  });
+
+  const intensityBoost = Math.min(3, (text.match(/!/g) || []).length);
+  const reflectionBoost = Math.min(3, (text.match(/\b(i think|i believe|i feel|i try|i usually)\b/gi) || []).length);
+  const depthBoost = Math.min(3, Math.floor(words.length / 40));
+
+  traits.bravery += Math.ceil(intensityBoost / 2);
+  traits.intellect += depthBoost;
+  traits.loyalty += reflectionBoost > 0 ? 1 : 0;
+  traits.ambition += /\b(best|top|greatest|master|excel)\b/i.test(text) ? 2 : 0;
+
+  const total = Object.values(traits).reduce((sum, n) => sum + n, 0) || 1;
+  const normalizedTraits = Object.fromEntries(
+    Object.entries(traits).map(([trait, value]) => [trait, Math.round((value / total) * 100)])
+  );
+
+  return { raw: traits, normalized: normalizedTraits };
+}
+
+function calculateHouse(quizAnswers, personality) {
+  const quizScores = createEmptyHouseScores();
+  const aiScores = createEmptyHouseScores();
+
+  quizAnswers.forEach((house) => {
+    if (house in quizScores) {
+      quizScores[house] += 6;
+    }
+  });
+
+  Object.entries(personality.raw).forEach(([trait, value]) => {
+    const house = traitHouseMap[trait];
+    aiScores[house] += value * 2;
+  });
+
+  const totalScores = createEmptyHouseScores();
+  Object.keys(totalScores).forEach((house) => {
+    totalScores[house] = quizScores[house] + aiScores[house];
+  });
+
+  const sorted = Object.entries(totalScores).sort((a, b) => b[1] - a[1]);
+  const [winnerId, winnerScore] = sorted[0];
+  const runnerUpScore = sorted[1]?.[1] ?? 0;
+
+  const confidence = Math.min(100, Math.max(55, Math.round(60 + ((winnerScore - runnerUpScore) / (winnerScore || 1)) * 45)));
+
+  return {
+    winnerId,
+    totalScores,
+    quizScores,
+    aiScores,
+    confidence
+  };
+}
+
+function getDominantTraits(normalizedTraits) {
+  return Object.entries(normalizedTraits)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([trait]) => trait);
+}
+
+function titleCase(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function buildAnalysisLine(studentName, house, personality, confidence) {
+  const topTraits = getDominantTraits(personality.normalized).map(titleCase);
+  return `${studentName}, the hat detects strong ${topTraits.join(" + ")} patterns in your writing. House affinity confidence: ${confidence}%.`;
+}
+
+function renderTraitBars(personality) {
+  traitBreakdown.innerHTML = "";
+  Object.entries(personality.normalized)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([trait, value]) => {
+      const row = document.createElement("div");
+      row.className = "trait-row";
+
+      const label = document.createElement("div");
+      label.className = "trait-label";
+      label.innerHTML = `<span>${titleCase(trait)}</span><span>${value}%</span>`;
+
+      const track = document.createElement("div");
+      track.className = "trait-track";
+
+      const fill = document.createElement("div");
+      fill.className = "trait-fill";
+      fill.style.width = `${Math.max(8, value)}%`;
+
+      track.appendChild(fill);
+      row.appendChild(label);
+      row.appendChild(track);
+      traitBreakdown.appendChild(row);
+    });
+}
+
+function renderHouseScores(scores) {
+  scoreBreakdown.innerHTML = "";
+  Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([houseId, score]) => {
+      const row = document.createElement("div");
+      row.className = "house-score";
+      row.style.borderLeft = `4px solid ${houseData[houseId].color}`;
+      row.textContent = `${houseData[houseId].label}: ${score} enchanted points`;
+      scoreBreakdown.appendChild(row);
+    });
+}
+
+function playSortingChime() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  const ctx = new AudioContextClass();
+  const start = ctx.currentTime;
+  const notes = [392, 523.25, 659.25, 783.99, 659.25, 523.25];
+
+  notes.forEach((frequency, i) => {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(frequency, start + i * 0.12);
+    gain.gain.setValueAtTime(0.0001, start + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.09, start + i * 0.12 + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + i * 0.12 + 0.36);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start(start + i * 0.12);
+    oscillator.stop(start + i * 0.12 + 0.38);
+  });
+}
+
+function updateNarration(index) {
+  if (index < sortingNarration.length) {
+    narration.textContent = sortingNarration[index];
+  }
+}
+
+function startSortingNarration() {
+  updateNarration(0);
+  sortingNarration.slice(1).forEach((_, index) => {
+    window.setTimeout(() => updateNarration(index + 1), (index + 1) * 680);
+  });
+}
+
+function drawShareCard() {
+  if (!latestResult) return;
+
+  const ctx = shareCanvas.getContext("2d");
+  const { studentName, house, confidence, analysis, scores } = latestResult;
+  const orderedScores = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([houseId, score]) => `${houseData[houseId].label}: ${score}`)
+    .join("  •  ");
+
+  ctx.clearRect(0, 0, 1080, 1080);
+
+  const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
+  gradient.addColorStop(0, "#080611");
+  gradient.addColorStop(0.48, "#1d1433");
+  gradient.addColorStop(1, house.color);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1080, 1080);
+
+  ctx.fillStyle = "rgba(227, 200, 132, 0.2)";
+  ctx.beginPath();
+  ctx.arc(830, 220, 205, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#f8ebcd";
+  ctx.font = "700 54px Cinzel, serif";
+  ctx.fillText("THE SORTING HAT HAS CHOSEN", 84, 145);
+
+  ctx.fillStyle = house.color;
+  ctx.font = "800 120px Cinzel, serif";
+  ctx.fillText(house.label.toUpperCase(), 84, 320);
+
+  ctx.fillStyle = "#faecc8";
+  ctx.font = "46px IM Fell English, serif";
+  wrapText(ctx, `${studentName}: ${house.line}`, 84, 420, 920, 56);
+
+  ctx.fillStyle = "rgba(248, 235, 205, 0.95)";
+  ctx.font = "34px IM Fell English, serif";
+  wrapText(ctx, analysis, 84, 650, 920, 42);
+
+  ctx.fillStyle = "rgba(248, 235, 205, 0.9)";
+  ctx.font = "31px IM Fell English, serif";
+  wrapText(ctx, `${orderedScores}  •  Confidence: ${confidence}%`, 84, 810, 920, 40);
+
+  ctx.fillStyle = "#dfbf7d";
+  ctx.font = "600 36px Cinzel, serif";
+  ctx.fillText("Harry Potter Sorting Hat App", 84, 980);
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+  let yPos = y;
+
+  words.forEach((word) => {
+    const candidate = `${line}${word} `;
+    if (ctx.measureText(candidate).width > maxWidth && line) {
+      ctx.fillText(line.trim(), x, yPos);
+      line = `${word} `;
+      yPos += lineHeight;
+    } else {
+      line = candidate;
+    }
+  });
+
+  if (line) {
+    ctx.fillText(line.trim(), x, yPos);
+  }
+}
+
+function downloadShareCard() {
+  drawShareCard();
+  const link = document.createElement("a");
+  link.href = shareCanvas.toDataURL("image/png");
+  link.download = "hogwarts-sorting-result.png";
+  link.click();
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (isSorting) return;
+
+  const formData = new FormData(form);
+  const studentName = (formData.get("studentName") || "Young Wizard").toString().trim();
+  const answers = ["q1", "q2", "q3", "q4", "q5"].map((id) => formData.get(id));
+  const traitsText = (formData.get("traits") || "").toString().trim();
+
+  if (!studentName || !traitsText) return;
+
+  isSorting = true;
+  submitBtn.disabled = true;
+  shareBtn.disabled = true;
+
+  const personality = analyzePersonality(traitsText);
+  const result = calculateHouse(answers, personality);
+  const house = houseData[result.winnerId];
+  const analysis = buildAnalysisLine(studentName, house, personality, result.confidence);
+
+  latestResult = {
+    studentName,
+    house,
+    confidence: result.confidence,
+    analysis,
+    personality,
+    scores: result.totalScores
+  };
+
+  hatStage.classList.add("sorting");
+  startSortingNarration();
+  playSortingChime();
+
+  window.setTimeout(() => {
+    houseName.textContent = `${house.label.toUpperCase()}!`;
+    houseName.style.color = house.color;
+    houseLine.textContent = `${studentName}, ${house.line}`;
+    analysisLine.textContent = analysis;
+
+    renderTraitBars(personality);
+    renderHouseScores(result.totalScores);
+
+    quizCard.classList.add("hidden");
+    resultCard.classList.remove("hidden");
+    shareBtn.disabled = false;
+    submitBtn.disabled = false;
+    hatStage.classList.remove("sorting");
+    narration.textContent = `The hall erupts in applause for ${studentName}.`;
+    isSorting = false;
+  }, 2600);
+});
+
+retryBtn.addEventListener("click", () => {
+  form.reset();
+  resultCard.classList.add("hidden");
+  quizCard.classList.remove("hidden");
+  narration.textContent = "The hat yawns awake and waits for the next witch or wizard...";
+  latestResult = null;
+});
+
+shareBtn.addEventListener("click", downloadShareCard);
